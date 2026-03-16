@@ -392,19 +392,12 @@ async function generateStory(){
   var p=profile;
   var prompt='You are writing a deeply personal, emotionally resonant life simulation for someone who has shared their real life situation and a decision they are considering.\n\nHere is their profile:\n- Name: '+p.name+'\n- Age: '+p.age+'\n- Gender: '+p.gender+'\n- Location: '+p.location+'\n- Relationship status: '+p.rel+'\n- Children: '+p.children+'\n- Living situation: '+p.living+'\n- Current situation: '+p.job+'\n- Annual income bracket: '+['Under $20k','$20k-$50k','$50k-$100k','$100k-$200k','$200k+'][p.salary-1]+'\n- Net worth bracket: '+['Deep in debt over $50k','In debt $10k-$50k','Slightly negative','Around zero','$1k-$25k','$25k-$100k','$100k-$500k','$500k-$1M','$1M+'][p.networth+3]+'\n\nTheir decision: "'+p.decision+'"\n\nWrite their hypothetical life story if they go through with this decision. The story must:\n1. Directly reference their specific decision and personal situation throughout\n2. Be told in 4 chapters spanning ages '+(p.age+1)+', '+(p.age+3)+', '+(p.age+6)+', and '+(p.age+12)+'\n3. Each chapter needs a title and 3-4 sentences of narrative\n4. End on an encouraging note — the core message is "you have options, you are not stuck"\n5. Use italics sparingly for emotional emphasis with <em> tags\n6. Feel personal, warm, and literary — not generic\n\nRespond ONLY with valid JSON in this exact format, no markdown, no backticks:\n{"chapters":[{"yrs":1,"title":"Chapter title","body":"Chapter text with optional <em>emphasis</em>"},{"yrs":3,"title":"Chapter title","body":"Chapter text"},{"yrs":6,"title":"Chapter title","body":"Chapter text"},{"yrs":12,"title":"Chapter title","body":"Chapter text"}],"verdict":"One powerful closing sentence about their journey","stats":{"finance":65,"happiness":72,"health":68,"relationships":70}}';
 
-  var response=await fetch('https://api.anthropic.com/v1/messages',{
+  var response=await fetch('/api/story',{
     method:'POST',
     headers:{
-      'Content-Type':'application/json',
-      'x-api-key':API_KEY,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
+      'Content-Type':'application/json'
     },
-    body:JSON.stringify({
-      model:'claude-sonnet-4-20250514',
-      max_tokens:1500,
-      messages:[{role:'user',content:prompt}]
-    })
+    body:JSON.stringify({prompt:prompt})
   });
 
   if(!response.ok)throw new Error('API error: '+response.status);
