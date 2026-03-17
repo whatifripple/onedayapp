@@ -151,7 +151,7 @@ html,body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-se
     </div>
     <div class="grid2">
       <div class="field"><label>Current situation</label>
-        <select id="job" onchange="chk()"><option value="">Select</option><option>Student</option><option>Employed</option><option>Entrepreneur</option><option>Freelancer</option><option>Between jobs</option><option>Other</option></select>
+        <select id="job" onchange="chk()"><option value="">Select</option><option>Student</option><option>Employed</option><option>Entrepreneur</option><option>Unemployed</option><option>Between jobs</option><option>Other</option></select>
       </div>
       <div class="field"><label>Annual income</label>
         <select id="salary" onchange="chk()"><option value="">Select</option><option value="1">Under $20k</option><option value="2">$20k–$50k</option><option value="3">$50k–$100k</option><option value="4">$100k–$200k</option><option value="5">$200k+</option></select>
@@ -170,6 +170,10 @@ html,body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-se
         <option value="4">$500k–$1M</option>
         <option value="5">$1M+</option>
       </select>
+    </div>
+    <div class="field">
+      <label>Anything else we should know?</label>
+      <textarea id="extra" rows="4" maxlength="500" placeholder="e.g. I have a girlfriend but we're not official, I'm in my last semester of university, I'm dealing with a health issue..."></textarea>
     </div>
   </div>
   <button class="btn btn-primary inactive" id="btn1" onclick="goSnapshot()">See your life snapshot →</button>
@@ -295,7 +299,7 @@ function goSnapshot(){
   profile={
     name:v('fname'),age:parseInt(v('age')),gender:v('gender'),rel:v('rel'),
     location:v('location'),children:parseInt(v('children')),living:v('living'),
-    job:v('job'),salary:parseInt(v('salary')),networth:parseInt(v('networth'))
+    job:v('job'),salary:parseInt(v('salary')),networth:parseInt(v('networth')),extra:v('extra')
   };
   buildSnapshot();
   show('s-intake',false);show('s-snapshot',true);
@@ -390,7 +394,7 @@ function runSim(){
 
 async function generateStory(){
   var p=profile;
-  var prompt='You are writing a deeply personal, emotionally resonant life simulation for someone who has shared their real life situation and a decision they are considering.\n\nHere is their profile:\n- Name: '+p.name+'\n- Age: '+p.age+'\n- Gender: '+p.gender+'\n- Location: '+p.location+'\n- Relationship status: '+p.rel+'\n- Children: '+p.children+'\n- Living situation: '+p.living+'\n- Current situation: '+p.job+'\n- Annual income bracket: '+['Under $20k','$20k-$50k','$50k-$100k','$100k-$200k','$200k+'][p.salary-1]+'\n- Net worth bracket: '+['Deep in debt over $50k','In debt $10k-$50k','Slightly negative','Around zero','$1k-$25k','$25k-$100k','$100k-$500k','$500k-$1M','$1M+'][p.networth+3]+'\n\nTheir decision: "'+p.decision+'"\n\nWrite their hypothetical life story if they go through with this decision. The story must:\n1. Directly reference their specific decision and personal situation throughout\n2. Be told in 4 chapters spanning ages '+(p.age+1)+', '+(p.age+3)+', '+(p.age+6)+', and '+(p.age+12)+'\n3. Each chapter needs a title and 3-4 sentences of narrative\n4. End on an encouraging note — the core message is "you have options, you are not stuck"\n5. Use italics sparingly for emotional emphasis with <em> tags\n6. Feel personal, warm, and literary — not generic\n\nRespond ONLY with valid JSON in this exact format, no markdown, no backticks:\n{"chapters":[{"yrs":1,"title":"Chapter title","body":"Chapter text with optional <em>emphasis</em>"},{"yrs":3,"title":"Chapter title","body":"Chapter text"},{"yrs":6,"title":"Chapter title","body":"Chapter text"},{"yrs":12,"title":"Chapter title","body":"Chapter text"}],"verdict":"One powerful closing sentence about their journey","stats":{"finance":65,"happiness":72,"health":68,"relationships":70}}';
+  var prompt='You are writing a deeply personal, emotionally resonant life simulation for someone who has shared their real life situation and a decision they are considering.\n\nHere is their profile:\n- Name: '+p.name+'\n- Age: '+p.age+'\n- Gender: '+p.gender+'\n- Location: '+p.location+'\n- Relationship status: '+p.rel+'\n- Children: '+p.children+'\n- Living situation: '+p.living+'\n- Current situation: '+p.job+'\n- Annual income bracket: '+['Under $20k','$20k-$50k','$50k-$100k','$100k-$200k','$200k+'][p.salary-1]+'\n- Net worth bracket: '+['Deep in debt over $50k','In debt $10k-$50k','Slightly negative','Around zero','$1k-$25k','$25k-$100k','$100k-$500k','$500k-$1M','$1M+'][p.networth+3]+'\n- Anything else we should know?: '+p.extra+'\n\nTheir decision: "'+p.decision+'"\n\nWrite their hypothetical life story if they go through with this decision. The story must:\n1. Directly reference their specific decision and personal situation throughout\n2. Be told in 4 chapters spanning ages '+(p.age+1)+', '+(p.age+3)+', '+(p.age+6)+', and '+(p.age+12)+'\n3. Each chapter needs a title and 3-4 sentences of narrative\n4. End on an encouraging note — the core message is "you have options, you are not stuck"\n5. Use italics sparingly for emotional emphasis with <em> tags\n6. Feel personal, warm, and literary — not generic\n\nRespond ONLY with valid JSON in this exact format, no markdown, no backticks:\n{"chapters":[{"yrs":1,"title":"Chapter title","body":"Chapter text with optional <em>emphasis</em>"},{"yrs":3,"title":"Chapter title","body":"Chapter text"},{"yrs":6,"title":"Chapter title","body":"Chapter text"},{"yrs":12,"title":"Chapter title","body":"Chapter text"}],"verdict":"One powerful closing sentence about their journey","stats":{"finance":65,"happiness":72,"health":68,"relationships":70}}';
 
   var response=await fetch('/api/story',{
     method:'POST',
@@ -466,6 +470,7 @@ function reset(){
   ['s-result','s-decision','s-snapshot','s-loading'].forEach(function(id){show(id,false);});
   show('s-intake',true);
   document.getElementById('decision').value='';
+  document.getElementById('extra').value='';
   document.getElementById('char-count').textContent='0 / 300';
   document.getElementById('btn3').classList.add('inactive');
   document.getElementById('btn1').classList.add('inactive');
