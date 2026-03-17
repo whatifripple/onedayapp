@@ -292,14 +292,6 @@ html,body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-se
     <div class="snapshot-greeting" id="snap-greeting"></div>
     <div class="snapshot-sub">Here's where you stand — compared to people your age.</div>
   </div>
-  <div class="snapshot-intro"><p id="snap-intro"></p></div>
-  <div class="stat-block" id="snap-stats"></div>
-  <div class="overall-card">
-    <div class="overall-label">Your life score</div>
-    <div class="overall-score" id="snap-score"></div>
-    <div class="overall-sub">out of 100</div>
-    <div class="overall-msg" id="snap-msg"></div>
-  </div>
   <div class="card hidden" id="life-now-card">
     <div class="section-title">Your life right now</div>
     <div class="section-sub" id="life-now-loading">
@@ -311,6 +303,14 @@ html,body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-se
       </span>
     </div>
     <div class="chapter-body" id="life-now-text" style="margin-top:.25rem"></div>
+  </div>
+  <div class="snapshot-intro"><p id="snap-intro"></p></div>
+  <div class="stat-block" id="snap-stats"></div>
+  <div class="overall-card">
+    <div class="overall-label">Your life score</div>
+    <div class="overall-score" id="snap-score"></div>
+    <div class="overall-sub">out of 100</div>
+    <div class="overall-msg" id="snap-msg"></div>
   </div>
   <button class="btn btn-primary" onclick="goDecision()" style="margin-bottom:.75rem">Now make your decision →</button>
   <button class="btn btn-ghost" onclick="goBack1()">← Edit my details</button>
@@ -429,6 +429,16 @@ function buildSnapshot(){
   var p=profile;
   document.getElementById('snap-greeting').textContent='Here you are, '+p.name+'.';
   var stats=[];
+  var incMap={1:12,2:35,3:62,4:83,5:96};
+  var incPct=incMap[p.salary]||35;
+  var careerBaseMap={Student:48,Employed:62,Entrepreneur:58,Unemployed:38,'Between jobs':42,Other:52};
+  var careerBase=careerBaseMap[p.job]||52;
+  var careerPct=Math.max(10,Math.min(95,Math.round(careerBase+(incPct-50)*0.3)));
+  var careerMsg;
+  if(careerPct<35)careerMsg='Career-wise, you\'re in a building season — and that\'s not a flaw, it\'s a phase. Being '+(p.job||'where you are right now')+' can be the exact runway that lets you reset, learn, and choose a direction that actually fits you.';
+  else if(careerPct<65)careerMsg='Career-wise, you\'re in a solid place with real momentum to work with. As '+(p.job||'someone navigating a busy season')+', small focused moves now can compound into bigger options faster than you expect.';
+  else careerMsg='Career-wise, you\'re in a strong position for your stage of life — and you\'ve earned that. If you\'re '+(p.job||'on your current path')+', you have leverage: you can keep building, or you can pivot with intention instead of panic.';
+  stats.push({label:'Career',pct:careerPct,msg:careerMsg});
   var nwMap={'-3':-75000,'-2':-25000,'-1':-4000,'0':0,'1':10000,'2':55000,'3':200000,'4':700000,'5':2000000};
   var nwMed={18:0,25:10000,30:35000,35:76000,40:135000,45:200000,50:280000,55:370000,60:430000,70:500000};
   var nwVal=nwMap[String(p.networth)]||0;
@@ -440,8 +450,6 @@ function buildSnapshot(){
   else if(nwVal<med)nwPct=Math.round(30+(nwVal/med)*20);
   else nwPct=Math.min(95,Math.round(50+(nwVal-med)/(med*4)*40));
   stats.push({label:'Net worth',pct:nwPct,msg:nwPct<30?'You\'re in the early stages of building wealth — and so was almost everyone worth knowing at your age. The starting point is rarely the finish line.':nwPct<55?'You\'re right around where most people your age are. That\'s a real foundation — and you\'re here asking questions most people aren\'t.':'You\'re ahead of most people your age financially. That\'s not luck — it\'s decisions you\'ve already made right.'});
-  var incMap={1:12,2:35,3:62,4:83,5:96};
-  var incPct=incMap[p.salary]||35;
   stats.push({label:'Income',pct:incPct,msg:incPct<30?'Your income puts you earlier in the earning curve — the biggest jumps are still ahead. Most high earners didn\'t start there.':incPct<60?'You\'re earning in a solid range. What matters more than where you start is the direction you\'re moving.':'Your income puts you well ahead of most people your age. You\'ve clearly put in the work.'});
   var mba=p.age<25?12:p.age<30?28:p.age<35?52:p.age<40?65:72;
   var relPct,relMsg;
