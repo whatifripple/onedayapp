@@ -122,7 +122,7 @@ html,body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-se
     <div class="grid2">
       <div class="field"><label>Age</label><input id="age" type="number" min="18" max="99" oninput="chk()"/></div>
       <div class="field"><label>Gender</label>
-        <select id="gender" onchange="chk()"><option value="">Select</option><option>Male</option><option>Female</option><option>Non-binary</option><option>Prefer not to say</option></select>
+        <select id="gender" onchange="chk()"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option><option>Prefer not to say</option></select>
       </div>
     </div>
     <div class="grid2">
@@ -399,6 +399,8 @@ function v(id){var el=document.getElementById(id);return el?el.value.trim():'';}
 
 function chk(){
   var ok=true;
+  var ageVal=parseInt(v('age'));
+  if(isNaN(ageVal)||ageVal<18||ageVal>99){ok=false;}
   for(var i=0;i<FIELDS.length;i++){if(!v(FIELDS[i])){ok=false;break;}}
   var btn=document.getElementById('btn1');
   if(ok){btn.classList.remove('inactive');}else{btn.classList.add('inactive');}
