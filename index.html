@@ -465,7 +465,7 @@ function buildSnapshot(){
   else if(p.living==='Living with family'){hPct=p.age<25?70:p.age<30?40:25;hMsg=hPct+'% of people your age live with family at some point. Lower costs, more runway. Many of the best comebacks started exactly here.';}
   else{hPct=45;hMsg='Your living situation is shared by millions building toward something bigger. Where you sleep right now doesn\'t define where you\'ll land.';}
   stats.push({label:'Housing',pct:hPct,msg:hMsg});
-  var overall=Math.round((nwPct+incPct+relPct+hPct)/4);
+  var overall=Math.round((careerPct+nwPct+incPct+relPct+hPct)/5);
   var msgs=['You\'re earlier in the journey than you think — and earlier means more time, more room, more possibility than most people ever get.','You\'re right in the middle of a story that hasn\'t finished. Most chapters that matter start exactly here.','You\'ve quietly built more than you give yourself credit for. The question now is what you do with it.','You\'re ahead of the curve in ways that will compound. The best is genuinely still ahead.'];
   document.getElementById('snap-intro').textContent="Based on your age, income, and life situation — here's how you compare to people at the same stage. This is your starting point, not your destination.";
   var block=document.getElementById('snap-stats');
@@ -480,6 +480,46 @@ function buildSnapshot(){
   document.getElementById('snap-score').textContent=overall;
   document.getElementById('snap-msg').textContent=msgs[overall<35?0:overall<55?1:overall<75?2:3];
   buildLifeNow(p);
+}
+
+function deterministicStoryStats(p){
+  var incMap={1:12,2:35,3:62,4:83,5:96};
+  var incPct=incMap[p.salary]||35;
+
+  var careerBaseMap={Student:48,Employed:62,Entrepreneur:58,Unemployed:38,'Between jobs':42,Other:52};
+  var careerBase=careerBaseMap[p.job]||52;
+  var careerPct=Math.max(10,Math.min(95,Math.round(careerBase+(incPct-50)*0.3)));
+
+  var nwMap={'-3':-75000,'-2':-25000,'-1':-4000,'0':0,'1':10000,'2':55000,'3':200000,'4':700000,'5':2000000};
+  var nwMed={18:0,25:10000,30:35000,35:76000,40:135000,45:200000,50:280000,55:370000,60:430000,70:500000};
+  var nwVal=nwMap[String(p.networth)]||0;
+  var keys=Object.keys(nwMed);
+  var ageKey=keys.reduce(function(a,b){return Math.abs(b-p.age)<Math.abs(a-p.age)?b:a;});
+  var med=nwMed[ageKey]||1;
+  var nwPct;
+  if(nwVal<=0)nwPct=15;
+  else if(nwVal<med)nwPct=Math.round(30+(nwVal/med)*20);
+  else nwPct=Math.min(95,Math.round(50+(nwVal-med)/(med*4)*40));
+
+  var mba=p.age<25?12:p.age<30?28:p.age<35?52:p.age<40?65:72;
+  var relPct;
+  if(p.rel==='Married')relPct=Math.min(92,mba+10);
+  else if(p.rel==='In a relationship')relPct=Math.max(60,Math.min(85,mba+40));
+  else if(p.rel==='Single'||p.rel==="It's complicated")relPct=100-mba;
+  else relPct=Math.max(20,mba-15);
+
+  var oba=p.age<25?5:p.age<30?18:p.age<35?40:p.age<40?55:p.age<50?65:72;
+  var hPct;
+  if(p.living==='Own my home')hPct=Math.min(95,oba+12);
+  else if(p.living==='Renting')hPct=55;
+  else if(p.living==='Living with family')hPct=p.age<25?70:p.age<30?40:25;
+  else hPct=45;
+
+  var finance=Math.round((nwPct+incPct)/2);
+  var happiness=Math.max(20,Math.min(95,Math.round((careerPct+relPct+hPct)/3)));
+  var overall=Math.round((careerPct+nwPct+incPct+relPct+hPct)/5);
+
+  return {finance:finance,happiness:happiness,overall:overall};
 }
 
 function buildLifeNow(p){
@@ -554,7 +594,7 @@ function runSim(){
 
 async function generateStory(){
   var p=profile;
-  var prompt='You are writing a deeply personal, emotionally resonant life simulation for someone who has shared their real life situation and a decision they are considering.\n\nHere is their profile:\n- Name: '+p.name+'\n- Age: '+p.age+'\n- Gender: '+p.gender+'\n- Location: '+p.location+'\n- Relationship status: '+p.rel+'\n- Children: '+p.children+'\n- Living situation: '+p.living+'\n- Current situation: '+p.job+'\n- Annual income bracket: '+['Under $20k','$20k-$50k','$50k-$100k','$100k-$200k','$200k+'][p.salary-1]+'\n- Net worth bracket: '+['Deep in debt over $50k','In debt $10k-$50k','Slightly negative','Around zero','$1k-$25k','$25k-$100k','$100k-$500k','$500k-$1M','$1M+'][p.networth+3]+'\n- Anything else we should know?: '+p.extra+'\n\nTheir decision: "'+p.decision+'"\n\nWrite their hypothetical life story if they go through with this decision. The story must:\n1. Directly reference their specific decision and personal situation throughout\n2. Be told in 4 chapters spanning ages '+(p.age+1)+', '+(p.age+3)+', '+(p.age+6)+', and '+(p.age+12)+'\n3. Each chapter needs a title and 3-4 sentences of narrative\n4. End on an encouraging note — the core message is "you have options, you are not stuck"\n5. Use italics sparingly for emotional emphasis with <em> tags\n6. Feel personal, warm, and literary — not generic\n\nRespond ONLY with valid JSON in this exact format, no markdown, no backticks:\n{"chapters":[{"yrs":1,"title":"Chapter title","body":"Chapter text with optional <em>emphasis</em>"},{"yrs":3,"title":"Chapter title","body":"Chapter text"},{"yrs":6,"title":"Chapter title","body":"Chapter text"},{"yrs":12,"title":"Chapter title","body":"Chapter text"}],"verdict":"One powerful closing sentence about their journey","stats":{"finance":65,"happiness":72,"health":68,"relationships":70}}';
+  var prompt='You are writing a deeply personal, emotionally resonant life simulation for someone who has shared their real life situation and a decision they are considering.\n\nHere is their profile:\n- Name: '+p.name+'\n- Age: '+p.age+'\n- Gender: '+p.gender+'\n- Location: '+p.location+'\n- Relationship status: '+p.rel+'\n- Children: '+p.children+'\n- Living situation: '+p.living+'\n- Current situation: '+p.job+'\n- Annual income bracket: '+['Under $20k','$20k-$50k','$50k-$100k','$100k-$200k','$200k+'][p.salary-1]+'\n- Net worth bracket: '+['Deep in debt over $50k','In debt $10k-$50k','Slightly negative','Around zero','$1k-$25k','$25k-$100k','$100k-$500k','$500k-$1M','$1M+'][p.networth+3]+'\n- Anything else we should know?: '+p.extra+'\n\nTheir decision: "'+p.decision+'"\n\nWrite their hypothetical life story if they go through with this decision. The story must:\n1. Directly reference their specific decision and personal situation throughout\n2. Be told in 4 chapters spanning ages '+(p.age+1)+', '+(p.age+3)+', '+(p.age+6)+', and '+(p.age+12)+'\n3. Each chapter needs a title and 3-4 sentences of narrative\n4. End on an encouraging note — the core message is "you have options, you are not stuck"\n5. Use italics sparingly for emotional emphasis with <em> tags\n6. Feel personal, warm, and literary — not generic\n\nRespond ONLY with valid JSON in this exact format, no markdown, no backticks:\n{"chapters":[{"yrs":1,"title":"Chapter title","body":"Chapter text with optional <em>emphasis</em>"},{"yrs":3,"title":"Chapter title","body":"Chapter text"},{"yrs":6,"title":"Chapter title","body":"Chapter text"},{"yrs":12,"title":"Chapter title","body":"Chapter text"}],"verdict":"One powerful closing sentence about their journey"}';
 
   var response=await fetch('/api/story',{
     method:'POST',
@@ -572,8 +612,8 @@ async function generateStory(){
 
 function buildResult(story){
   var p=profile;
-  var s=story.stats;
-  var overall=Math.round((s.finance+s.happiness+s.health+s.relationships)/4);
+  var s=deterministicStoryStats(p);
+  var overall=s.overall;
   var rng=seeded(p.name.split('').reduce(function(a,c){return a+c.charCodeAt(0);},0)*p.age);
 
   show('s-loading',false);show('s-result',true);
