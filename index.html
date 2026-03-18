@@ -607,20 +607,24 @@ function runSim(){
 
 async function generateStory(){
   var p=profile;
-  var targetAge;
-  if(p.age>=60){
-    targetAge=80;
-    if(targetAge<=p.age)targetAge=Math.min(85,p.age+20);
+  var o1=1,o2=3,o3=10,o4;
+  if(p.age>=75){
+    o4=20;
+    var cappedFinalAge=Math.min(p.age+o4,100);
+    o4=cappedFinalAge-p.age;
+    if(o4<=o3)o4=o3+1;
   }else{
-    targetAge=65;
+    var targetAge=p.age>=60?80:65;
+    o4=targetAge-p.age;
+    if(o4<=o3)o4=o3+1;
   }
-  var futureOffset=targetAge-p.age;
-  if(futureOffset<0)futureOffset=0;
-  var lateAge=p.age+futureOffset;
-  var timingText=p.age>=60
-    ? '2. Be told in 4 chapters: one year after their decision, three years after, ten years after, and then at age '+lateAge+', looking ahead at what might unfold.\n'
-    : '2. Be told in 4 chapters: one year after their decision, three years after, ten years after, and then at age 65, looking back over their entire life.\n';
-    var prompt='You are writing a deeply personal, emotionally resonant life simulation for someone who has shared their real life situation and a decision they are considering.\n\nHere is their profile:\n- Name: '+p.name+'\n- Age: '+p.age+'\n- Gender: '+p.gender+'\n- Location: '+p.location+'\n- Relationship status: '+p.rel+'\n- Children: '+p.children+'\n- Living situation: '+p.living+'\n- Current situation: '+p.job+'\n- Annual income bracket: '+['Under $20k','$20k-$50k','$50k-$100k','$100k-$200k','$200k+'][p.salary-1]+'\n- Net worth bracket: '+['Deep in debt over $50k','In debt $10k-$50k','Slightly negative','Around zero','$1k-$25k','$25k-$100k','$100k-$500k','$500k-$1M','$1M+'][p.networth+3]+'\n- Anything else we should know?: '+p.extra+'\n\nTheir decision: "'+p.decision+'"\n\nWrite their hypothetical life story if they go through with this decision. The story must:\n1. Directly reference their specific decision and personal situation throughout\n'+timingText+'3. STRICT RULE: Each chapter must be exactly 3 sentences. No more, no less.\n4. End on an encouraging note — the core message is "you have options, you are not stuck"\n5. Use italics sparingly for emotional emphasis with <em> tags\n6. Feel personal, warm, and literary — not generic\n\nRespond ONLY with valid JSON in this exact format, no markdown, no backticks:\n{"chapters":[{"yrs":1,"title":"Chapter title","body":"Chapter text with optional <em>emphasis</em>"},{"yrs":3,"title":"Chapter title","body":"Chapter text"},{"yrs":10,"title":"Chapter title","body":"Chapter text"},{"yrs":'+futureOffset+',"title":"Chapter title","body":"Chapter text"}],"verdict":"One powerful closing sentence about their journey","stats":{"finance":65,"happiness":72,"health":68,"relationships":70,"overall":69}}';  
+  var lateAge=p.age+o4;
+  var timingText=p.age>=75
+    ? '2. Be told in 4 chapters: one year after their decision, three years after, ten years after, and then about twenty years after, when they are around age '+lateAge+'.\n'
+    : (p.age>=60
+      ? '2. Be told in 4 chapters: one year after their decision, three years after, ten years after, and then at age '+lateAge+', looking ahead at what might unfold.\n'
+      : '2. Be told in 4 chapters: one year after their decision, three years after, ten years after, and then at age 65, looking back over their entire life.\n');
+    var prompt='You are writing a deeply personal, emotionally resonant life simulation for someone who has shared their real life situation and a decision they are considering.\n\nHere is their profile:\n- Name: '+p.name+'\n- Age: '+p.age+'\n- Gender: '+p.gender+'\n- Location: '+p.location+'\n- Relationship status: '+p.rel+'\n- Children: '+p.children+'\n- Living situation: '+p.living+'\n- Current situation: '+p.job+'\n- Annual income bracket: '+['Under $20k','$20k-$50k','$50k-$100k','$100k-$200k','$200k+'][p.salary-1]+'\n- Net worth bracket: '+['Deep in debt over $50k','In debt $10k-$50k','Slightly negative','Around zero','$1k-$25k','$25k-$100k','$100k-$500k','$500k-$1M','$1M+'][p.networth+3]+'\n- Anything else we should know?: '+p.extra+'\n\nTheir decision: "'+p.decision+'"\n\nWrite their hypothetical life story if they go through with this decision. The story must:\n1. Directly reference their specific decision and personal situation throughout\n'+timingText+'3. STRICT RULE: Each chapter must be exactly 3 sentences. No more, no less.\n4. End on an encouraging note — the core message is "you have options, you are not stuck"\n5. Use italics sparingly for emotional emphasis with <em> tags\n6. Feel personal, warm, and literary — not generic\n\nRespond ONLY with valid JSON in this exact format, no markdown, no backticks:\n{"chapters":[{"yrs":'+o1+',"title":"Chapter title","body":"Chapter text with optional <em>emphasis</em>"},{"yrs":'+o2+',"title":"Chapter title","body":"Chapter text"},{"yrs":'+o3+',"title":"Chapter title","body":"Chapter text"},{"yrs":'+o4+',"title":"Chapter title","body":"Chapter text"}],"verdict":"One powerful closing sentence about their journey","stats":{"finance":65,"happiness":72,"health":68,"relationships":70,"overall":69}}';  
 
   var response=await fetch('/api/story',{
     method:'POST',
